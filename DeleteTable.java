@@ -1,9 +1,8 @@
 import java.io.RandomAccessFile;
 public class DeleteTable {
 	public static void parseDeleteString(String deleteString) {
-		System.out.println("DELETE METHOD");
-		System.out.println("Parsing the string:\"" + deleteString + "\"");
-		
+		System.out.println("Processing Delete method with query" + deleteString);
+
 		String[] tokens=deleteString.split(" ");
 		String table = tokens[3];
 		String[] temp = deleteString.split("where");

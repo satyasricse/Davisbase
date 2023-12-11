@@ -1,149 +1,165 @@
 
 import java.io.RandomAccessFile;
+
 public class CreateTable {
-public static void parseCreateString(String createString) {
-		
-		System.out.println("Processing create table with query "+createString);
-		String[] tokens=createString.split(" ");
+    public static void parseCreateString(String createString) {
 
-		if (tokens[1].compareTo("index")==0)
-		{
-		String col = tokens[4];
-		String colName = col.substring(1,col.length()-1);
-		Index.createIndex(tokens[3],colName, "String");
-		}
-		else
-		{
-			if (tokens[1].compareTo("table") <= 0) {
+        System.out.println("Processing create table with query " + createString);
+        String[] tokens = createString.split(" ");
 
-			String tableName = tokens[2];
-			String[] temp = createString.split(tableName);
-			String cols = temp[1].trim();
-			String[] create_cols = cols.substring(1, cols.length()-1).split(",");
+        if (tokens[1].compareTo("index") == 0) {
+            String col = tokens[4];
+            String colName = col.substring(1, col.length() - 1);
+            createIndex(colName, "String");
+        } else {
+            if (tokens[1].compareTo("table") <= 0) {
 
-			for(int i = 0; i < create_cols.length; i++)
-				create_cols[i] = create_cols[i].trim();
+                String tableName = tokens[2];
+                String[] temp = createString.split(tableName);
+                String cols = temp[1].trim();
+                String[] create_cols = cols.substring(1, cols.length() - 1).split(",");
 
-				if (!DavisBase.verifyIfTableAlreadyExists(tableName)) {
-				createTable(tableName, create_cols);
-				} else {
-					System.out.println("Table "+tableName+" already exists.");
-				}
-			} else {
-				System.out.println("Wrong syntax");
+                for (int i = 0; i < create_cols.length; i++)
+                    create_cols[i] = create_cols[i].trim();
 
-			}
-		}
-	}
-public static void createTable(String table, String[] col){                                     //Create from DavisBase.java
-	try{	
-		
-		RandomAccessFile file = new RandomAccessFile("data/"+table+".tbl", "rw");				//creates .tbl file (table)
-		file.setLength(Table.PAGE_SIZE);	//512bytes
-		file.seek(0);				//seek first pos
-		file.writeByte(0x0D);		//Write
-		file.close();
-		
-		file = new RandomAccessFile("data/davisbase_tables.tbl", "rw");
-		
-		int numOfPages = Table.getNumOfPages(file);
-		int page=1;
-		for(int p = 1; p <= numOfPages; p++){
-			int rm = Page.getRightMost(file, p);
-			if(rm == 0)
-				page = p;
-		}
-		
-		int[] keys = Page.getKeyArray(file, page);
-		int l = keys[0];
-		for(int i = 0; i < keys.length; i++)
-			if(keys[i]>l)
-				l = keys[i];
-		file.close();
-		
-		String[] values = {Integer.toString(l+1), table};
-		insertInto("davisbase_tables", values);
+                if (!DavisBase.verifyIfTableAlreadyExists(tableName)) {
+                    createTable(tableName, create_cols);
+                } else {
+                    System.out.println("Table " + tableName + " already exists.");
+                }
+            } else {
+                System.out.println("Wrong syntax");
 
-		file = new RandomAccessFile("data/davisbase_columns.tbl", "rw");
-		
-		numOfPages = Table.getNumOfPages(file);
-		page=1;
-		for(int p = 1; p <= numOfPages; p++){
-			int rm = Page.getRightMost(file, p);
-			if(rm == 0)
-				page = p;
-		}
-		
-		keys = Page.getKeyArray(file, page);
-		l = keys[0];
-		for (int key : keys)
-			if (key > l)
-				l = key;
-		file.close();
+            }
+        }
+    }
 
-		for(int i = 0; i < col.length; i++){
-			l = l + 1;
-			String[] token = col[i].split(" ");
-			String col_name = token[0];
-			String dt = token[1].toUpperCase();
-			String pos = Integer.toString(i+1);
-			String nullable;
-			if(token.length > 2)
-				nullable = "NO";
-			else
-				 nullable = "YES";
-			String[] value = {Integer.toString(l), table, col_name, dt, pos, nullable};
-			insertInto("davisbase_columns", value);
-		}
+    public static void createIndex(String colName, String dType) {
+        try {
+            RandomAccessFile colFile1 = new RandomAccessFile("data/" + colName + ".ndx", "rw");
+            colFile1.setLength(512);
+            colFile1.seek(0);
+            colFile1.writeByte(DataType.valueByName(dType));
+            colFile1.writeByte(1);
+            colFile1.write(0);
+            colFile1.writeByte(0x00);
+            colFile1.writeByte(0x10);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	}catch(Exception e){
-		e.printStackTrace();
-	}
-}
-public static void insertInto(String table, String[] values){
-	try{
-		RandomAccessFile file = new RandomAccessFile("data/"+table+".tbl", "rw");
-		insertInto(file, table, values);
-		file.close();
+    public static void createTable(String table, String[] col) {                                     //Create from DavisBase.java
+        try {
 
-	}catch(Exception e){
-		e.printStackTrace();
-	}
-}
-public static void insertInto(RandomAccessFile file, String table, String[] values){
-	String[] dtype = Table.getDataType(table);
-	String[] nullable = Table.getNullable(table);
+            RandomAccessFile file = new RandomAccessFile("data/" + table + ".tbl", "rw");                //creates .tbl file (table)
+            file.setLength(Table.PAGE_SIZE);    //512bytes
+            file.seek(0);                //seek first pos
+            file.writeByte(0x0D);        //Write
+            file.close();
 
-	for(int i = 0; i < nullable.length; i++)
-		if(values[i].equals("null") && nullable[i].equals("NO")){
-			System.out.println("NULL-value constraint violation");
-			System.out.println();
-			return;
-		}
+            file = new RandomAccessFile("data/davisbase_tables.tbl", "rw");
 
-	int key = new Integer(values[0]);
-	int page = Table.searchKeyPage(file, key);
-	if(page != 0)
-		if(Page.hasKey(file, page, key)){
-			System.out.println("Uniqueness constraint violation");
-			return;
-		}
-	if(page == 0)
-		page = 1;
+            int numOfPages = Table.getNumOfPages(file);
+            int page = 1;
+            for (int p = 1; p <= numOfPages; p++) {
+                int rm = Page.getRightMost(file, p);
+                if (rm == 0)
+                    page = p;
+            }
+
+            int[] keys = Page.getKeyArray(file, page);
+            int l = keys[0];
+            for (int i = 0; i < keys.length; i++)
+                if (keys[i] > l)
+                    l = keys[i];
+            file.close();
+
+            String[] values = {Integer.toString(l + 1), table};
+            insertInto("davisbase_tables", values);
+
+            file = new RandomAccessFile("data/davisbase_columns.tbl", "rw");
+
+            numOfPages = Table.getNumOfPages(file);
+            page = 1;
+            for (int p = 1; p <= numOfPages; p++) {
+                int rm = Page.getRightMost(file, p);
+                if (rm == 0)
+                    page = p;
+            }
+
+            keys = Page.getKeyArray(file, page);
+            l = keys[0];
+            for (int key : keys)
+                if (key > l)
+                    l = key;
+            file.close();
+
+            for (int i = 0; i < col.length; i++) {
+                l = l + 1;
+                String[] token = col[i].split(" ");
+                String col_name = token[0];
+                String dt = token[1].toUpperCase();
+                String pos = Integer.toString(i + 1);
+                String nullable;
+                if (token.length > 2)
+                    nullable = "NO";
+                else
+                    nullable = "YES";
+                String[] value = {Integer.toString(l), table, col_name, dt, pos, nullable};
+                insertInto("davisbase_columns", value);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertInto(String table, String[] values) {
+        try {
+            RandomAccessFile file = new RandomAccessFile("data/" + table + ".tbl", "rw");
+            insertInto(file, table, values);
+            file.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertInto(RandomAccessFile file, String table, String[] values) {
+        String[] dtype = Table.getDataType(table);
+        String[] nullable = Table.getNullable(table);
+
+        for (int i = 0; i < nullable.length; i++)
+            if (values[i].equals("null") && nullable[i].equals("NO")) {
+                System.out.println("NULL-value constraint violation");
+                System.out.println();
+                return;
+            }
+
+        int key = new Integer(values[0]);
+        int page = Table.searchKeyPage(file, key);
+        if (page != 0)
+            if (Page.hasKey(file, page, key)) {
+                System.out.println("Uniqueness constraint violation");
+                return;
+            }
+        if (page == 0)
+            page = 1;
 
 
-	byte[] stc = new byte[dtype.length-1];
-	short plSize = (short) Table.calculatePayloadSize(table, values, stc);
-	int cellSize = plSize + 6;
-	int offset = Page.checkLeafSpace(file, page, cellSize);
+        byte[] stc = new byte[dtype.length - 1];
+        short plSize = (short) Table.calculatePayloadSize(table, values, stc);
+        int cellSize = plSize + 6;
+        int offset = Page.checkLeafSpace(file, page, cellSize);
 
 
-	if(offset != -1){
-		Page.insertLeafCell(file, page, offset, plSize, key, stc, values);
-	}else{
-		Page.splitLeaf(file, page);
-		insertInto(file, table, values);
-	}
-}
+        if (offset != -1) {
+            Page.insertLeafCell(file, page, offset, plSize, key, stc, values);
+        } else {
+            Page.splitLeaf(file, page);
+            insertInto(file, table, values);
+        }
+    }
 
 }
