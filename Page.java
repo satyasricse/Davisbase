@@ -56,7 +56,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((num_pages-1)*pageSize);
 			file.writeByte(0x05); 
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return num_pages;
@@ -71,7 +71,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((num_pages-1)*pageSize);
 			file.writeByte(0x0D); 
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return num_pages;
@@ -100,7 +100,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			}
 
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return val;
@@ -156,7 +156,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			setCellNumber(file, newPage, num);
 			
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 			
 		}
 	}
@@ -212,7 +212,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			setCellNumber(file, newPage, num);
 			
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 
@@ -320,7 +320,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			}
 
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return array;
@@ -336,7 +336,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 				array[i] = file.readShort();
 			}
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return array;
@@ -356,7 +356,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 				}
 			}
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return val;
@@ -371,7 +371,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			}
 			file.writeInt(page);
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	} 
 
@@ -401,7 +401,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			setCellNumber(file, page, num);
 
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 
@@ -477,7 +477,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 				file.writeShort(offset);
 			}
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 
@@ -542,7 +542,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 				}
 			}
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 
@@ -569,7 +569,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 				return content - size;
 			
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return val;
@@ -583,7 +583,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize+8);
 			val = file.readInt();
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return val;
@@ -594,7 +594,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize+8);
 			file.writeInt(parent);
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 	
@@ -638,7 +638,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			long orig = (page-1)*pageSize;
 			loc = orig + offset;
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return loc;
 	}
@@ -650,7 +650,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize+1);
 			val = file.readByte();
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return val;
@@ -661,7 +661,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize+1);
 			file.writeByte(num);
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 	
@@ -671,7 +671,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize+12+id*2);
 			offset = file.readShort();
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return offset;
 	}
@@ -681,7 +681,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize+12+id*2);
 			file.writeShort(offset);
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
     
@@ -691,7 +691,7 @@ public static short calPayloadSize(String[] values, String[] dataType){
 			file.seek((page-1)*pageSize);
 			type = file.readByte();
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return type;
 	}

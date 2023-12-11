@@ -3,8 +3,7 @@ import java.io.RandomAccessFile;
 public class CreateTable {
 public static void parseCreateString(String createString) {
 		
-		System.out.println("CREATE METHOD");
-		System.out.println("Parsing the string:\"" + createString + "\"");
+		System.out.println("Processing create table with query "+createString);
 		String[] tokens=createString.split(" ");
 
 		if (tokens[1].compareTo("index")==0)
@@ -15,7 +14,6 @@ public static void parseCreateString(String createString) {
 		}
 		else
 		{
-
 			if (tokens[1].compareTo("table") <= 0) {
 
 			String tableName = tokens[2];
@@ -26,7 +24,7 @@ public static void parseCreateString(String createString) {
 			for(int i = 0; i < create_cols.length; i++)
 				create_cols[i] = create_cols[i].trim();
 
-				if (!DavisBase.tableExists(tableName)) {
+				if (!DavisBase.verifyIfTableAlreadyExists(tableName)) {
 				createTable(tableName, create_cols);
 				} else {
 					System.out.println("Table "+tableName+" already exists.");
@@ -99,7 +97,7 @@ public static void createTable(String table, String[] col){                     
 		}
 
 	}catch(Exception e){
-		System.out.println(e);
+		e.printStackTrace();
 	}
 }
 public static void insertInto(String table, String[] values){
@@ -109,7 +107,7 @@ public static void insertInto(String table, String[] values){
 		file.close();
 
 	}catch(Exception e){
-		System.out.println(e);
+		e.printStackTrace();
 	}
 }
 public static void insertInto(RandomAccessFile file, String table, String[] values){

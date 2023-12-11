@@ -18,7 +18,7 @@ public class Table{
 		try{
 			numOfPages = (int)(file.length()/((long) PAGE_SIZE));
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return numOfPages;
@@ -39,7 +39,7 @@ public class Table{
 			file.close();
 			return cols;
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return cols;
 	}
@@ -59,7 +59,7 @@ public class Table{
 			file.close();
 			return dataType;
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return dataType;
 	}
@@ -117,7 +117,7 @@ public class Table{
 			}
 
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return values;
@@ -265,7 +265,7 @@ public static int searchKeyPage(RandomAccessFile file, int key){
 				}
 			}
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 
 		return val;
@@ -290,7 +290,7 @@ public static int searchKeyPage(RandomAccessFile file, int key){
 			file.close();
 			return nullable;
 		}catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return nullable;
 	}

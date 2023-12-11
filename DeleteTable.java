@@ -9,7 +9,7 @@ public class DeleteTable {
 		String[] temp = deleteString.split("where");
 		String cmpTemp = temp[1];
 		String[] cmp = DavisBase.parserEquation(cmpTemp);
-		if(!DavisBase.tableExists(table)){
+		if(!DavisBase.verifyIfTableAlreadyExists(table)){
 			System.out.println("Table "+table+" does not exist.");
 		}
 		else
@@ -53,7 +53,7 @@ public class DeleteTable {
 		
 		}catch(Exception e)
 		{
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		
 	}

@@ -24,7 +24,7 @@ public static void select(String table, String[] cols, String[] cmp){     //sele
 		buffer.display(cols);
 		file.close();
 	}catch(Exception e){
-		System.out.println(e);
+		e.printStackTrace();
 	}
 }
 

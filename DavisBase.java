@@ -5,7 +5,9 @@ import java.util.Scanner;
 
 public class DavisBase {
 
-	
+
+	public static final String DIRECTORY = "data";
+	public static final String SPACE_DELIMITER = " ";
 	static String prompt = "davisql> ";
 	static String copyright = "Group G";
 	static String version = "v1.00";
@@ -15,24 +17,22 @@ public class DavisBase {
 	
 	
     public static void main(String[] args) {
-    	Init.init();
+    	Initialization.init();
 		
-		splashScreen();
-
-		
-		String userCommand = ""; 
+		printInitialInfo();
+		String userCommand;
 
 		while(!isExit) {
 			System.out.print(prompt);
 			userCommand = scanner.next().replace("\n", " ").replace("\r", "").trim().toLowerCase();
-			parseUserCommand(userCommand);
+			parseUserInput(userCommand);
 		}
 		System.out.println("Exiting...");
 
 
 	}
 	
-    public static void splashScreen() {
+    public static void printInitialInfo() {
 		System.out.println(line("-",80));
         System.out.println("Welcome to DavisBase");
 		System.out.println("DavisBase Version " + version);
@@ -74,32 +74,16 @@ public class DavisBase {
 		System.out.println(line("*",80));
 	}
 
-
-	
-	public static boolean tableExists(String tablename){
-		tablename = tablename+".tbl";
-		
-		try {
-			File dataDir = new File("data");
-			String[] oldTableFiles;
-			oldTableFiles = dataDir.list();
-			for (int i=0; i<oldTableFiles.length; i++) {
-				if(oldTableFiles[i].equals(tablename))
-					return true;
-			}
-		}
-		catch (SecurityException se) {
-			System.out.println("Unable to create data container directory");
-			System.out.println(se);
-		}
-
-		return false;
+	public static boolean verifyIfTableAlreadyExists(String name){
+		name = name+".tbl";
+		String finalName = name;
+		return Arrays.stream(new File(DIRECTORY).list()).anyMatch(file -> file.equalsIgnoreCase(finalName));
 	}
 
 
 	public static String[] parserEquation(String equ){
 		String comparator[] = new String[3];
-		String temp[] = new String[2];
+		String temp[];
 		if(equ.contains("=")) {
 			temp = equ.split("=");
 			comparator[0] = temp[0].trim();
@@ -135,78 +119,37 @@ public class DavisBase {
 			comparator[1] = ">=";
 			comparator[2] = temp[1].trim();
 		}
-		//System.out.println(comparator[1]);
 		return comparator;
 	}
 		
-	public static void parseUserCommand (String userCommand) {
+	public static void parseUserInput(String inputStr) {
 		
-		ArrayList<String> commandTokens = new ArrayList<String>(Arrays.asList(userCommand.split(" ")));
+		ArrayList<String> commandTokens = new ArrayList<String>(Arrays.asList(inputStr.split(SPACE_DELIMITER)));
 
-		switch (commandTokens.get(0)) {
-
-		    case "show":
-		    	System.out.println("STUB: Calling the method to process the command (SHOW)");
-			    ShowTables.showTables();
-			    break;
-			
-		    case "create":
-		    	System.out.println("STUB: Calling the method to process the command (CREATE");
-				CreateTable.parseCreateString(userCommand);
-			    break;
-
-			case "insert":
-				System.out.println("STUB: Calling the method to process the command (INSERT)");
-				Insert.parseInsertString(userCommand);
-				break;
-				
-			case "delete":
-				System.out.println("STUB: Calling the method to process the command (DELETE)");
-				DeleteTable.parseDeleteString(userCommand);
-				break;	
-
-			case "update":
-				System.out.println("STUB: Calling the method to process the command (UPDATE)");
-				UpdateTable.parseUpdateString(userCommand);
-				break;
-				
-			case "select":
-				System.out.println("STUB: Calling the method to process the command (SELECT)");
-				parseQueryString(userCommand);
-				break;
-
-			case "drop":
-				System.out.println("STUB: Calling the method to process the command (DROP)");
-				DropTable.dropTable(userCommand);
-				break;	
-
-			case "help":
-				help();
-				break;
-
-			case "version":
-				System.out.println("DavisBase Version " + version);
-				System.out.println(copyright);
-				break;
-
-			case "exit":
-				isExit=true;
-				break;
-				
-			case "quit":
-				isExit=true;
-				break;
-	
-			default:
-				System.out.println("I didn't understand the command: \"" + userCommand + "\"");
-				System.out.println();
-				break;
+		String command = commandTokens.get(0);
+		if(command.equalsIgnoreCase("show")){
+			ShowTables.showTables();
+		}else if(command.equalsIgnoreCase("create")){
+			CreateTable.parseCreateString(inputStr);
+		}else if(command.equalsIgnoreCase("insert")){
+			Insert.parseInsertString(inputStr);
+		}else if(command.equalsIgnoreCase("delete")){
+			DeleteTable.parseDeleteString(inputStr);
+		}else if(command.equalsIgnoreCase("update")){
+			UpdateTable.parseUpdateString(inputStr);
+		}else if(command.equalsIgnoreCase("select")){
+			parseQueryString(inputStr);
+		}else if(command.equalsIgnoreCase("drop")){
+			DropTable.dropTable(inputStr);
+		}else if (command.equalsIgnoreCase("quit") || command.equalsIgnoreCase("exit")){
+			isExit = true;
+		}else{
+			help();
 		}
-	} 
+
+	}
     public static void parseQueryString(String queryString) {
-		System.out.println("STUB: Calling the method to process the command");
-		System.out.println("Parsing the string:\"" + queryString + "\"");
-		
+		System.out.println("Processing Select method with input " + queryString);
 		String[] cmp;
 		String[] column;
 		String[] temp = queryString.split("where");
@@ -230,7 +173,7 @@ public class DavisBase {
 				column[i] = column[i].trim();
 		}
 		
-		if(!tableExists(tableName)){
+		if(!verifyIfTableAlreadyExists(tableName)){
 			System.out.println("Table "+tableName+" does not exist.");
 		}
 		else
