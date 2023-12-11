@@ -1,11 +1,5 @@
 import java.io.RandomAccessFile;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.SortedMap;
 public class Index{
 public static void createIndex(String tableName,String colName, String dType)
 {

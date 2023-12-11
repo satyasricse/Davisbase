@@ -1,20 +1,12 @@
 
 import java.io.RandomAccessFile;
-import java.io.FileReader;
-import java.io.File;
-import java.util.Scanner;
-import java.util.SortedMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 public class CreateTable {
 public static void parseCreateString(String createString) {
 		
 		System.out.println("CREATE METHOD");
 		System.out.println("Parsing the string:\"" + createString + "\"");
 		String[] tokens=createString.split(" ");
-		
+
 		if (tokens[1].compareTo("index")==0)
 		{
 		String col = tokens[4];
@@ -23,28 +15,25 @@ public static void parseCreateString(String createString) {
 		}
 		else
 		{
-		
-		if (tokens[1].compareTo("table")>0){
-			System.out.println("Wrong syntax");
-			
-		}
-		else{
-				 
-		String tableName = tokens[2];
-		String[] temp = createString.split(tableName);
-		String cols = temp[1].trim();
-		String[] create_cols = cols.substring(1, cols.length()-1).split(",");
-		
-		for(int i = 0; i < create_cols.length; i++)
-			create_cols[i] = create_cols[i].trim();
-		
-		if(DavisBase.tableExists(tableName)){
-			System.out.println("Table "+tableName+" already exists.");
-		}
-		else
-			{
-			createTable(tableName, create_cols);		
-			}
+
+			if (tokens[1].compareTo("table") <= 0) {
+
+			String tableName = tokens[2];
+			String[] temp = createString.split(tableName);
+			String cols = temp[1].trim();
+			String[] create_cols = cols.substring(1, cols.length()-1).split(",");
+
+			for(int i = 0; i < create_cols.length; i++)
+				create_cols[i] = create_cols[i].trim();
+
+				if (!DavisBase.tableExists(tableName)) {
+				createTable(tableName, create_cols);
+				} else {
+					System.out.println("Table "+tableName+" already exists.");
+				}
+			} else {
+				System.out.println("Wrong syntax");
+
 			}
 		}
 	}
@@ -52,14 +41,14 @@ public static void createTable(String table, String[] col){                     
 	try{	
 		
 		RandomAccessFile file = new RandomAccessFile("data/"+table+".tbl", "rw");				//creates .tbl file (table)
-		file.setLength(Table.pageSize);	//512bytes										
+		file.setLength(Table.PAGE_SIZE);	//512bytes
 		file.seek(0);				//seek first pos
 		file.writeByte(0x0D);		//Write
 		file.close();
 		
 		file = new RandomAccessFile("data/davisbase_tables.tbl", "rw");
 		
-		int numOfPages = Table.pages(file);
+		int numOfPages = Table.getNumOfPages(file);
 		int page=1;
 		for(int p = 1; p <= numOfPages; p++){
 			int rm = Page.getRightMost(file, p);
@@ -79,7 +68,7 @@ public static void createTable(String table, String[] col){                     
 
 		file = new RandomAccessFile("data/davisbase_columns.tbl", "rw");
 		
-		numOfPages = Table.pages(file);
+		numOfPages = Table.getNumOfPages(file);
 		page=1;
 		for(int p = 1; p <= numOfPages; p++){
 			int rm = Page.getRightMost(file, p);
@@ -89,9 +78,9 @@ public static void createTable(String table, String[] col){                     
 		
 		keys = Page.getKeyArray(file, page);
 		l = keys[0];
-		for(int i = 0; i < keys.length; i++)
-			if(keys[i]>l)
-				l = keys[i];
+		for (int key : keys)
+			if (key > l)
+				l = key;
 		file.close();
 
 		for(int i = 0; i < col.length; i++){
@@ -146,7 +135,7 @@ public static void insertInto(RandomAccessFile file, String table, String[] valu
 
 
 	byte[] stc = new byte[dtype.length-1];
-	short plSize = (short) Table.calPayloadSize(table, values, stc);
+	short plSize = (short) Table.calculatePayloadSize(table, values, stc);
 	int cellSize = plSize + 6;
 	int offset = Page.checkLeafSpace(file, page, cellSize);
 

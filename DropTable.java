@@ -1,11 +1,5 @@
-import java.io.RandomAccessFile;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.SortedMap;
+import java.io.RandomAccessFile;
 public class DropTable {
 	public static void dropTable(String dropTableString) {
 		System.out.println("DROP METHOD");
@@ -26,9 +20,9 @@ public class DropTable {
 		try{
 			
 			RandomAccessFile file = new RandomAccessFile("data/davisbase_tables.tbl", "rw");
-			int numOfPages = Table.pages(file);
+			int numOfPages = Table.getNumOfPages(file);
 			for(int page = 1; page <= numOfPages; page ++){
-				file.seek((page-1)*Table.pageSize);
+				file.seek((page-1)*Table.PAGE_SIZE);
 				byte fileType = file.readByte();
 				if(fileType == 0x0D)
 				{
@@ -47,14 +41,12 @@ public class DropTable {
 					}
 					Page.setCellNumber(file, page, (byte)k);
 				}
-				else
-					continue;
 			}
 
 			file = new RandomAccessFile("data/davisbase_columns.tbl", "rw");
-			numOfPages = Table.pages(file);
+			numOfPages = Table.getNumOfPages(file);
 			for(int page = 1; page <= numOfPages; page ++){
-				file.seek((page-1)*Table.pageSize);
+				file.seek((page-1)*Table.PAGE_SIZE);
 				byte fileType = file.readByte();
 				if(fileType == 0x0D)
 				{
@@ -73,8 +65,6 @@ public class DropTable {
 					}
 					Page.setCellNumber(file, page, (byte)k);
 				}
-				else
-					continue;
 			}
 
 			File anOldFile = new File("data", table+".tbl"); 

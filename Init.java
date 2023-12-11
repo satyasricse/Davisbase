@@ -1,11 +1,5 @@
-import java.io.RandomAccessFile;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.SortedMap;
+import java.io.RandomAccessFile;
 
 
 public class Init{
@@ -24,10 +18,10 @@ public static void init(){
 				String[] oldTableFiles = dataDir.list();
 				boolean checkTab = false;
 				boolean checkCol = false;
-				for (int i=0; i<oldTableFiles.length; i++) {
-					if(oldTableFiles[i].equals("davisbase_tables.tbl"))
+				for (String oldTableFile : oldTableFiles) {
+					if (oldTableFile.equals("davisbase_tables.tbl"))
 						checkTab = true;
-					if(oldTableFiles[i].equals("davisbase_columns.tbl"))
+					if (oldTableFile.equals("davisbase_columns.tbl"))
 						checkCol = true;
 				}
 				
@@ -59,8 +53,8 @@ public static void initialize() {
 			dataDir.mkdir();
 			String[] oldTableFiles;
 			oldTableFiles = dataDir.list();
-			for (int i=0; i<oldTableFiles.length; i++) {
-				File anOldFile = new File(dataDir, oldTableFiles[i]); 
+			for (String oldTableFile : oldTableFiles) {
+				File anOldFile = new File(dataDir, oldTableFile);
 				anOldFile.delete();
 			}
 		}

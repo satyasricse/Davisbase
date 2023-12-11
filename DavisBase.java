@@ -1,11 +1,7 @@
-import java.io.RandomAccessFile;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
-import java.util.SortedMap;
 
 public class DavisBase {
 
@@ -14,9 +10,7 @@ public class DavisBase {
 	static String copyright = "Group G";
 	static String version = "v1.00";
 	static boolean isExit = false;
-		
-	public static int pageSize = 512;
-	
+
 	static Scanner scanner = new Scanner(System.in).useDelimiter(";");
 	
 	

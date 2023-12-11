@@ -1,11 +1,4 @@
 import java.io.RandomAccessFile;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.SortedMap;
 public class DeleteTable {
 	public static void parseDeleteString(String deleteString) {
 		System.out.println("DELETE METHOD");
@@ -29,7 +22,7 @@ public class DeleteTable {
 		int key = new Integer(cmp[2]);
 
 		RandomAccessFile file = new RandomAccessFile("data/"+table+".tbl", "rw");
-		int numPages = Table.pages(file);
+		int numPages = Table.getNumOfPages(file);
 		int page = 0;
 		for(int p = 1; p <= numPages; p++)
 			if(Page.hasKey(file, p, key)&Page.getPageType(file, p)==0x0D){
