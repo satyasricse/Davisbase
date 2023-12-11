@@ -1,31 +1,27 @@
+import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.FileReader;
-import java.io.File;
-import java.util.Scanner;
-import java.util.SortedMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
 
 public class Table{
 	
-	public static int pageSize = 512;
-	public static String datePattern = "yyyy-MM-dd_HH:mm:ss";
+	public static int PAGE_SIZE = 512;
+	public static String DATE_PATTERN = "yyyy-MM-dd_HH:mm:ss";
 
 	public static void main(String[] args){}
 
-
-	
-	public static int pages(RandomAccessFile file){
-		int num_pages = 0;
+	public static int getNumOfPages(RandomAccessFile file){
+		int numOfPages = 0;
 		try{
-			num_pages = (int)(file.length()/(new Long(pageSize)));
+			numOfPages = (int)(file.length()/((long) PAGE_SIZE));
 		}catch(Exception e){
 			System.out.println(e);
 		}
 
-		return num_pages;
+		return numOfPages;
 	}
 
 	public static String[] getColName(String table){ //tables=davisbase_tables
@@ -35,12 +31,9 @@ public class Table{
 			Buffer buffer = new Buffer();
 			String[] columnName = {"rowid", "table_name", "column_name", "data_type", "ordinal_position", "is_nullable"};
 			String[] cmp = {"table_name","=",table};
-			filter(file, cmp, columnName, buffer);
+			filterColumns(file, cmp, columnName, buffer);
 			HashMap<Integer, String[]> content = buffer.content;
-			ArrayList<String> array = new ArrayList<String>();
-			for(String[] i : content.values()){
-				array.add(i[2]);
-			}
+			ArrayList<String> array = content.values().stream().map(i -> i[2]).collect(Collectors.toCollection(ArrayList::new));
 			int size=array.size();
 			cols = array.toArray(new String[size]);
 			file.close();
@@ -56,14 +49,11 @@ public class Table{
 		try{
 			RandomAccessFile file = new RandomAccessFile("data/davisbase_columns.tbl", "rw");
 			Buffer buffer = new Buffer();
-			String[] columnName = {"rowid", "table_name", "column_name", "data_type", "ordinal_position", "is_nullable"};
-			String[] cmp = {"table_name","=",table};
-			filter(file, cmp, columnName, buffer);
-			HashMap<Integer, String[]> content = buffer.content;
-			ArrayList<String> array = new ArrayList<String>();
-			for(String[] x : content.values()){
-				array.add(x[3]);
-			}
+			String[] columnNames = {"rowid", "table_name", "column_name", "data_type", "ordinal_position", "is_nullable"};
+			String[] cmpStrArr = {"table_name","=",table};
+			filterColumns(file, cmpStrArr, columnNames, buffer);
+			HashMap<Integer, String[]> contentMap = buffer.content;
+			ArrayList<String> array = contentMap.values().stream().map(x -> x[3]).collect(Collectors.toCollection(ArrayList::new));
 			int size=array.size();
 			dataType = array.toArray(new String[size]);
 			file.close();
@@ -75,34 +65,25 @@ public class Table{
 	}
 
 	
-	public static void filter(RandomAccessFile file, String[] cmp, String[] columnName, Buffer buffer){
+	public static void filterColumns(RandomAccessFile file, String[] cmp, String[] columnName, Buffer buffer){
 		try{
-			
-			int numOfPages = pages(file);
+			int numOfPages = getNumOfPages(file);
 			for(int page = 1; page <= numOfPages; page++){
-				
-				file.seek((page-1)*pageSize);
+				file.seek((page-1)* PAGE_SIZE);
 				byte pageType = file.readByte();
 				if(pageType == 0x0D)
 				{
 					byte numOfCells = Page.getCellNumber(file, page); //accesses file header to get number of cells.
-
 					for(int i=0; i < numOfCells; i++){
-						
-						long loc = Page.getCellLoc(file, page, i);	
+						long loc = Page.getCellLoc(file, page, i);
 						String[] vals = retrieveValues(file, loc);
 						int rowid=Integer.parseInt(vals[0]);
-
 						boolean check = cmpCheck(vals, rowid, cmp, columnName);
-						
 						if(check)
-							buffer.add_vals(rowid, vals);
+							buffer.addVals(rowid, vals);
 					}
 				}
-				else
-					continue;
 			}
-
 			buffer.columnName = columnName;
 			buffer.format = new int[columnName.length];
 
@@ -118,7 +99,7 @@ public class Table{
 		String[] values = null;
 		try{
 			
-			SimpleDateFormat dateFormat = new SimpleDateFormat (datePattern);
+			SimpleDateFormat dateFormat = new SimpleDateFormat (DATE_PATTERN);
 
 			file.seek(loc+2);
 			int key = file.readInt();
@@ -132,57 +113,7 @@ public class Table{
 			values[0] = Integer.toString(key);
 			
 			for(int i=1; i <= num_cols; i++){
-				switch(stc[i-1]){
-					case 0x00:  file.readByte();
-					            values[i] = "null";
-								break;
-
-					case 0x01:  file.readShort();
-					            values[i] = "null";
-								break;
-
-					case 0x02:  file.readInt();
-					            values[i] = "null";
-								break;
-
-					case 0x03:  file.readLong();
-					            values[i] = "null";
-								break;
-
-					case 0x04:  values[i] = Integer.toString(file.readByte());
-								break;
-
-					case 0x05:  values[i] = Integer.toString(file.readShort());
-								break;
-
-					case 0x06:  values[i] = Integer.toString(file.readInt());
-								break;
-
-					case 0x07:  values[i] = Long.toString(file.readLong());
-								break;
-
-					case 0x08:  values[i] = String.valueOf(file.readFloat());
-								break;
-
-					case 0x09:  values[i] = String.valueOf(file.readDouble());
-								break;
-
-					case 0x0A:  Long temp = file.readLong();
-								Date dateTime = new Date(temp);
-								values[i] = dateFormat.format(dateTime);
-								break;
-
-					case 0x0B:  temp = file.readLong();
-								Date date = new Date(temp);
-								values[i] = dateFormat.format(date).substring(0,10);
-								break;
-
-					default:    int len = new Integer(stc[i-1]-0x0C);
-								byte[] bytes = new byte[len];
-								file.read(bytes);
-								values[i] = new String(bytes);
-								break;
-				}
+				setData(file, values, dateFormat, stc, i);
 			}
 
 		}catch(Exception e){
@@ -191,13 +122,69 @@ public class Table{
 
 		return values;
 	}
-		
-	public static int calPayloadSize(String table, String[] vals, byte[] stc){
+
+	private static void setData(RandomAccessFile file, String[] values, SimpleDateFormat dateFormat, byte[] stc, int i) throws IOException {
+		switch(stc[i -1]){
+			case 0x00:  file.readByte();
+						values[i] = "null";
+						break;
+
+			case 0x01:  file.readShort();
+						values[i] = "null";
+						break;
+
+			case 0x02:  file.readInt();
+						values[i] = "null";
+						break;
+
+			case 0x03:  file.readLong();
+						values[i] = "null";
+						break;
+
+			case 0x04:  values[i] = Integer.toString(file.readByte());
+						break;
+
+			case 0x05:  values[i] = Integer.toString(file.readShort());
+						break;
+
+			case 0x06:  values[i] = Integer.toString(file.readInt());
+						break;
+
+			case 0x07:  values[i] = Long.toString(file.readLong());
+						break;
+
+			case 0x08:  values[i] = String.valueOf(file.readFloat());
+						break;
+
+			case 0x09:  values[i] = String.valueOf(file.readDouble());
+						break;
+
+			case 0x0A:  long temp = file.readLong();
+						Date dateTime = new Date(temp);
+						values[i] = dateFormat.format(dateTime);
+						break;
+
+			case 0x0B:  temp = file.readLong();
+						Date date = new Date(temp);
+						values[i] = dateFormat.format(date).substring(0,10);
+						break;
+
+			default:    int len = stc[i - 1] - 0x0C;
+						byte[] bytes = new byte[len];
+						file.read(bytes);
+						values[i] = new String(bytes);
+						break;
+		}
+	}
+
+	public static int calculatePayloadSize(String table, String[] vals, byte[] stc){
 		String[] dataType = getDataType(table);
 		int size =dataType.length;
-		for(int i = 1; i < dataType.length; i++){
+		int i = 1;
+		while (i < dataType.length) {
 			stc[i - 1]= getStc(vals[i], dataType[i]);
-			size = size + feildLength(stc[i - 1]);
+			size = size + fieldLength(stc[i - 1]);
+			i++;
 		}
 		return size;
 	}
@@ -205,15 +192,17 @@ public class Table{
 	public static byte getStc(String value, String dataType){
 		if(value.equals("null")){
 			switch(dataType){
-				case "TINYINT":     return 0x00;
 				case "SMALLINT":    return 0x01;
-				case "INT":			return 0x02;
-				case "BIGINT":      return 0x03;
-				case "REAL":        return 0x02;
-				case "DOUBLE":      return 0x03;
-				case "DATETIME":    return 0x03;
-				case "DATE":        return 0x03;
-				case "TEXT":        return 0x03;
+				case "INT":
+				case "REAL":
+					return 0x02;
+				case "BIGINT":
+				case "DOUBLE":
+				case "DATETIME":
+				case "DATE":
+				case "TEXT":
+					return 0x03;
+				case "TINYINT":
 				default:			return 0x00;
 			}							
 		}else{
@@ -232,20 +221,24 @@ public class Table{
 		}
 	}
 	
-    public static short feildLength(byte stc){
+    public static short fieldLength(byte stc){
 		switch(stc){
-			case 0x00: return 1;
-			case 0x01: return 2;
-			case 0x02: return 4;
-			case 0x03: return 8;
-			case 0x04: return 1;
-			case 0x05: return 2;
-			case 0x06: return 4;
-			case 0x07: return 8;
-			case 0x08: return 4;
-			case 0x09: return 8;
-			case 0x0A: return 8;
-			case 0x0B: return 8;
+			case 0x00:
+			case 0x04:
+				return 1;
+			case 0x01:
+			case 0x05:
+				return 2;
+			case 0x02:
+			case 0x06:
+			case 0x08:
+				return 4;
+			case 0x03:
+			case 0x07:
+			case 0x09:
+			case 0x0A:
+			case 0x0B:
+				return 8;
 			default:   return (short)(stc - 0x0C);
 		}
 	}
@@ -255,9 +248,9 @@ public class Table{
 public static int searchKeyPage(RandomAccessFile file, int key){
 		int val = 1;
 		try{
-			int numPages = pages(file);
+			int numPages = getNumOfPages(file);
 			for(int page = 1; page <= numPages; page++){
-				file.seek((page - 1)*pageSize);
+				file.seek((page - 1)* PAGE_SIZE);
 				byte pageType = file.readByte();
 				if(pageType == 0x0D){
 					int[] keys = Page.getKeyArray(file, page);
@@ -286,9 +279,9 @@ public static int searchKeyPage(RandomAccessFile file, int key){
 			Buffer buffer = new Buffer();
 			String[] columnName = {"rowid", "table_name", "column_name", "data_type", "ordinal_position", "is_nullable"};
 			String[] cmp = {"table_name","=",table};
-			filter(file, cmp, columnName, buffer);
+			filterColumns(file, cmp, columnName, buffer);
 			HashMap<Integer, String[]> content = buffer.content;
-			ArrayList<String> array = new ArrayList<String>();
+			ArrayList<String> array = new ArrayList<>();
 			for(String[] i : content.values()){
 				array.add(i[5]);
 			}
@@ -303,14 +296,14 @@ public static int searchKeyPage(RandomAccessFile file, int key){
 	}
 
 
-	public static void filter(RandomAccessFile file, String[] cmp, String[] columnName, String[] type, Buffer buffer){
+	public static void filterColumns(RandomAccessFile file, String[] cmp, String[] columnName, String[] type, Buffer buffer){
 		try{
 			
-			int numOfPages = pages(file);
+			int numOfPages = getNumOfPages(file);
 			
 			for(int page = 1; page <= numOfPages; page++){
 				
-				file.seek((page-1)*pageSize);
+				file.seek((page-1)* PAGE_SIZE);
 				byte pageType = file.readByte();
 				
 					if(pageType == 0x0D){
@@ -334,11 +327,9 @@ public static int searchKeyPage(RandomAccessFile file, int key){
 								vals[j] = vals[j].substring(1, vals[j].length()-1);
 
 						if(check)
-							buffer.add_vals(rowid, vals);
+							buffer.addVals(rowid, vals);
 					 }
 				   }
-				    else
-						continue;
 			}
 
 			buffer.columnName = columnName;
@@ -372,42 +363,27 @@ public static int searchKeyPage(RandomAccessFile file, int key){
 				int val = Integer.parseInt(cmp[2]);
 				String operator = cmp[1];
 				switch(operator){
-					case "=": if(rowid == val) 
-								check = true;
-							  else
-							  	check = false;
+					case "=":
+						check = rowid == val;
 							  break;
-					case ">": if(rowid > val) 
-								check = true;
-							  else
-							  	check = false;
+					case ">":
+						check = rowid > val;
 							  break;
-					case ">=": if(rowid >= val) 
-						        check = true;
-					          else
-					  	        check = false;	
+					case ">=":
+						check = rowid >= val;
 					          break;
-					case "<": if(rowid < val) 
-								check = true;
-							  else
-							  	check = false;
+					case "<":
+						check = rowid < val;
 							  break;
-					case "<=": if(rowid <= val) 
-								check = true;
-							  else
-							  	check = false;	
+					case "<=":
+						check = rowid <= val;
 							  break;
-					case "!=": if(rowid != val)  
-								check = true;
-							  else
-							  	check = false;	
+					case "!=":
+						check = rowid != val;
 							  break;						  							  							  							
 				}
 			}else{
-				if(cmp[2].equals(values[colPos-1]))
-					check = true;
-				else
-					check = false;
+				check = cmp[2].equals(values[colPos - 1]);
 			}
 		}
 		return check;

@@ -1,12 +1,4 @@
 import java.io.RandomAccessFile;
-import java.io.FileReader;
-import java.io.File;
-import java.util.Scanner;
-import java.util.SortedMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 public class UpdateTable {
 	public static void parseUpdateString(String updateString) {
@@ -36,7 +28,7 @@ public class UpdateTable {
 			int key = new Integer(cmp[2]);
 			
 			RandomAccessFile file = new RandomAccessFile("data/"+table+".tbl", "rw");
-			int numPages = Table.pages(file);
+			int numPages = Table.getNumOfPages(file);
 			int page = 0;
 			for(int p = 1; p <= numPages; p++)
 				if(Page.hasKey(file, p, key)&Page.getPageType(file, p)==0x0D){
@@ -79,7 +71,7 @@ public class UpdateTable {
 			}
 
 			byte[] stc = new byte[cols.length-1];
-			int plsize = Table.calPayloadSize(table, values, stc);
+			int plsize = Table.calculatePayloadSize(table, values, stc);
 			Page.updateLeafCell(file, page, offset, plsize, key, stc, values);
 
 			file.close();

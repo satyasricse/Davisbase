@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.HashMap;
 
 class Buffer{
@@ -9,10 +10,10 @@ class Buffer{
 	
 	public Buffer(){
 		num_row = 0;
-		content = new HashMap<Integer, String[]>();
+		content = new HashMap<>();
 	}
 
-	public void add_vals(int rowid, String[] val){
+	public void addVals(int rowid, String[] val){
 		content.put(rowid, val);
 		num_row = num_row + 1;
 	}
@@ -28,27 +29,29 @@ class Buffer{
 			System.out.println("Empty set.");
 		}
 		else{
-			for(int i = 0; i < format.length; i++)
-				format[i] = columnName[i].length();
+			Arrays.setAll(format, i -> columnName[i].length());
 			for(String[] i : content.values())
 				for(int j = 0; j < i.length; j++)
 					if(format[j] < i[j].length())
 						format[j] = i[j].length();
 			
 			if(col[0].equals("*")){
-				
-				for(int l: format)
+
+				for(int l: format) {
 					System.out.print(DavisBase.line("-", l+3));
+				}
 				
 				System.out.println();
 				
-				for(int i = 0; i< columnName.length; i++)
+				for(int i = 0; i< columnName.length; i++) {
 					System.out.print(fix(format[i], columnName[i])+"|");
+				}
 				
 				System.out.println();
 				
-				for(int l: format)
-					System.out.print(DavisBase.line("-", l+3));
+				for(int l: format) {
+					System.out.print(DavisBase.line("-", l + 3));
+				}
 				
 				System.out.println();
 
@@ -66,24 +69,20 @@ class Buffer{
 						if(col[j].equals(columnName[i]))
 							control[j] = i;
 
-				for(int j = 0; j < control.length; j++)
-					System.out.print(DavisBase.line("-", format[control[j]]+3));
+				for (int k : control) System.out.print(DavisBase.line("-", format[k] + 3));
 				
 				System.out.println();
-				
-				for(int j = 0; j < control.length; j++)
-					System.out.print(fix(format[control[j]], columnName[control[j]])+"|");
+
+				for (int k : control) System.out.print(fix(format[k], columnName[k]) + "|");
 				
 				System.out.println();
-				
-				for(int j = 0; j < control.length; j++)
-					System.out.print(DavisBase.line("-", format[control[j]]+3));
+
+				for (int k : control) System.out.print(DavisBase.line("-", format[k] + 3));
 				
 				System.out.println();
 				
 				for(String[] i : content.values()){
-					for(int j = 0; j < control.length; j++)
-						System.out.print(fix(format[control[j]], i[control[j]])+"|");
+					for (int k : control) System.out.print(fix(format[k], i[k]) + "|");
 					System.out.println();
 				}
 				System.out.println();
