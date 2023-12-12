@@ -17,4 +17,4 @@ VERSION;                                                   Show the program vers
 HELP;                                                      Show this help information.
 EXIT;                                                      Exit DavisBase.
 
-All the commands are case insensitive. For demonstration, load the folder DavisBase_Group_G in Eclipse project workspace and run the file "DavisBase.java" as a Java application.
+All the commands are case insensitive. For demonstration, load the folder DavisBase_Group_P in Eclipse project workspace and run the file "DavisBase.java" as a Java application.
